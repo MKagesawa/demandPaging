@@ -52,6 +52,95 @@ class Process:
             counter += 1
 
 
+class FrameTable:
+    def __init__(self, frameNum, type):
+        self.frameNum = frameNum
+        self.type = type
+        self.table = []
+        for i in range(4):
+            self.table.append([])
+
+    def hasFault(self, pageNum, processNum, time):
+        hasF = True
+        for page in self.table:
+            if page[0] == pageNum and page[1] == processNum:
+                if self.type == "lru":
+                    page[2] = time
+                hasF = False
+
+        return hasF
+
+    def replace(self, plist, pageNum, processNum, time):
+        if self.type == "fifo":
+            fifoIndex = -1
+
+            for i in range(len(self.table)):
+                if self.table[i][0] == 0 and self.table[i][1] == 0:
+                    fifoIndex = i
+                    break
+
+            if fifoIndex == -1:
+                evictedF = self.table[0]
+                evictedP = plist[evictedF[1] - 1]
+                resTime = time - evictedF[2]
+                evictedP.numEvict += 1
+                evictedP.resTime += resTime
+                temp = []
+                for i in range(len(self.table)):
+                    temp.append([])
+                for i in range(len(self.table)-1):
+                    temp[i] = self.table[i + 1]
+                self.table = temp
+                fifoIndex = len(self.table) - 1
+
+            self.table[fifoIndex] = [pageNum, processNum, time, time]
+
+        else:
+            LRUTime = time
+            evictedF = 0
+
+            for i in range(self.frameNum - 1, -1, -1): #check
+                if self.table[i][0] == 0 and self.table[i][1] == 0:
+                    self.table[i] = [pageNum, processNum, time, time]
+                    return
+                elif self.type == "lru" and LRUTime > self.time[i][2]:
+                    evictedF = i
+                    LRUTime = self.table[i][2]
+
+            evictedP = None
+            resTime = None
+            if self.type == "lru":
+                evictedP = plist[self.table[evictedF][1] - 1]
+                resTime = time - self.table[evictedF][3]
+            else:
+                global counter
+                evictedF = randomOS(counter) % self.frameNum
+                evictedP = plist[self.table[evictedF][1] - 1]
+                resTime = time - self.table[evictedF][2]
+
+            evictedP.numEvict += 1
+            evictedP.resTime += resTime
+
+            self.table[evictedF] = [pageNum, processNum, time, time]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
