@@ -1,12 +1,21 @@
 import sys
 
-machineSize = sys.argv[1]
-pageSize = sys.argv[2]
-processSize = sys.argv[3]
-jobMix = sys.argv[4]
-numRef = sys.argv[5]
-replacementAlgo = sys.argv[6]
-debugLevel = sys.argv[7]
+# machineSize = int(sys.argv[1])
+# pageSize = int(sys.argv[2])
+# processSize = int(sys.argv[3])
+# jobMix = int(sys.argv[4])
+# numRef = int(sys.argv[5])
+# replacementAlgo = sys.argv[6]
+# debugLevel = int(sys.argv[7])
+
+machineSize = 10
+pageSize = 10
+processSize = 20
+jobMix = 1
+numRef = 10
+replacementAlgo = "lru"
+debugLevel = 0
+
 
 randomNumbers = None
 with open("random-numbers.txt") as f:
@@ -28,7 +37,7 @@ class Process:
         self.resTime = 0
         self.nextRef = (111 * processNum) % processSize
 
-    def nextRef(self, A, B, C):
+    def nRef(self, A, B, C):
         global counter
         randomNum = randomOS(counter)
         counter += 1
@@ -49,8 +58,13 @@ class FrameTable:
         self.frameNum = frameNum
         self.type = type
         self.table = []
-        for i in range(4):
+        for i in range(int(frameNum)):
             self.table.append([])
+        for p in self.table:
+            p.append(0)
+            p.append(0)
+            p.append(0)
+            p.append(0)
 
     def hasFault(self, pageNum, processNum, time):
         hasF = True
@@ -91,11 +105,11 @@ class FrameTable:
             LRUTime = time
             evictedF = 0
 
-            for i in range(self.frameNum - 1, -1, -1): #check
+            for i in range(int(self.frameNum) - 1, -1, -1): #check
                 if self.table[i][0] == 0 and self.table[i][1] == 0:
                     self.table[i] = [pageNum, processNum, time, time]
                     return
-                elif self.type == "lru" and LRUTime > self.time[i][2]:
+                elif self.type == "lru" and LRUTime > self.table[i][2]:
                     evictedF = i
                     LRUTime = self.table[i][2]
 
@@ -125,13 +139,13 @@ def main():
     global replacementAlgo
     global debugLevel
 
-    print("The machine size is " + machineSize + ".")
-    print("The page size is " + pageSize + ".")
-    print("The process size size is " + processSize + ".")
-    print("The job mix number is " + jobMix + ".")
-    print("The number of references per process is " + numRef + ".")
-    print("The replacement algorithm is " + replacementAlgo + ".")
-    print("The level of debugging output is " + debugLevel + ".")
+    print("The machine size is " + str(machineSize) + ".")
+    print("The page size is " + str(pageSize) + ".")
+    print("The process size size is " + str(processSize) + ".")
+    print("The job mix number is " + str(jobMix) + ".")
+    print("The number of references per process is " + str(numRef) + ".")
+    print("The replacement algorithm is " + str(replacementAlgo) + ".")
+    print("The level of debugging output is " + str(debugLevel) + ".")
 
     quantum = 3
     totalFault = 0
@@ -140,20 +154,21 @@ def main():
     A = []
     B = []
     C = []
-    maxIteration = numRef / quantum
+    maxIteration = int(int(numRef) / int(quantum))
     frameNum = machineSize / pageSize
     frameTable = FrameTable(frameNum, replacementAlgo)
 
     if jobMix == 1:
-        plist = []
-        plist[0] = Process(processSize, 1)
+        plist = [] # check
+        print(plist)
+        plist.append(Process(processSize, 1))
         for i in range(numRef):
-            pageNumber = plist[0].nextRef / pageSize
+            pageNumber = int(plist[0].nextRef / pageSize)
             if frameTable.hasFault(pageNumber, 1, i+1):
                 frameTable.replace(plist, pageNumber, 1, i+1)
                 plist[0].numFault += 1
-
-            plist[0].nextRef(1, 0, 0)
+            print(plist[0])
+            plist[0].nRef(1, 0, 0)
     else:
         plist = []
         for i in range(4):
@@ -188,7 +203,7 @@ def main():
                     if frameTable.hasFault(pageNumber, j+1, time):
                         frameTable.replace(plist, pageNumber, j + 1, time)
                         plist[j].numFault += 1
-                    plist[j].nextRef(A[j], B[j], C[j])
+                    plist[j].nRef(A[j], B[j], C[j])
 
     indexTrack = 1
 
@@ -212,35 +227,3 @@ def main():
 
 
 main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
