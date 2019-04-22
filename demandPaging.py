@@ -8,12 +8,12 @@ import sys
 # replacementAlgo = sys.argv[6]
 # debugLevel = int(sys.argv[7])
 
-machineSize = 10
+machineSize = 20
 pageSize = 10
-processSize = 20
-jobMix = 1
+processSize = 10
+jobMix = 2
 numRef = 10
-replacementAlgo = "lru"
+replacementAlgo = "random"
 debugLevel = 0
 
 
@@ -160,14 +160,12 @@ def main():
 
     if jobMix == 1:
         plist = [] # check
-        print(plist)
         plist.append(Process(processSize, 1))
         for i in range(numRef):
             pageNumber = int(plist[0].nextRef / pageSize)
             if frameTable.hasFault(pageNumber, 1, i+1):
                 frameTable.replace(plist, pageNumber, 1, i+1)
                 plist[0].numFault += 1
-            print(plist[0])
             plist[0].nRef(1, 0, 0)
     else:
         plist = []
@@ -190,16 +188,16 @@ def main():
             B = [0.25, 0, 0.125, 0.125]
             C = [0, 0.25, 0.125, 0.125]
 
+        count = None
         for i in range(maxIteration + 1): #check
             for j in range(4):
-                count = None
                 if i == maxIteration:
                     count = numRef % quantum
                 else:
                     count = quantum
-                for k in range(counter):
-                    pageNumber = plist[j].nextRef / pageSize
-                    time = (quantum * i * 4) + k + 1 + (j * counter)
+                for k in range(count):
+                    pageNumber = int(plist[j].nextRef / pageSize)
+                    time = (quantum * i * 4) + k + 1 + (j * count)
                     if frameTable.hasFault(pageNumber, j+1, time):
                         frameTable.replace(plist, pageNumber, j + 1, time)
                         plist[j].numFault += 1
