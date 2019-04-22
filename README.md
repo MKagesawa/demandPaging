@@ -1,6 +1,8 @@
 ## Run
 python3 demandPaging.py 10 10 20 1 10 lru 0
 
+For the last input value, use 1 or 11 for more detailed debug output
+
 ### Inputs
 The program is invoked with 6 command line arguments, 5 positive integers and one string
 - M, the machine size in words.
