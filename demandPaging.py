@@ -1,26 +1,25 @@
 import sys
 
-# machineSize = int(sys.argv[1])
-# pageSize = int(sys.argv[2])
-# processSize = int(sys.argv[3])
-# jobMix = int(sys.argv[4])
-# numRef = int(sys.argv[5])
-# replacementAlgo = sys.argv[6]
-# debugLevel = int(sys.argv[7])
+#M
+machineSize = int(sys.argv[1])
+#P
+pageSize = int(sys.argv[2])
+#S
+processSize = int(sys.argv[3])
+#J
+jobMix = int(sys.argv[4])
+#N
+numRef = int(sys.argv[5])
+#R
+replacementAlgo = sys.argv[6]
 
-machineSize = 90
-pageSize = 10
-processSize = 40
-jobMix = 4
-numRef = 100
-replacementAlgo = "lru"
-debugLevel = "0"
-
+debugLevel = int(sys.argv[7])
 
 randomNumbers = None
 with open("random-numbers.txt") as f:
     randomNumbers = f.readlines()
 
+# a global counter to keep track of index of random number from txt file
 counter = 0
 def randomOS(counter):
     num = int(randomNumbers[int(counter)])
@@ -31,11 +30,13 @@ def randomOS(counter):
 
 class Process:
     def __init__(self, processSize, processNum):
-        self.processSize = processSize
+        self.processSize = int(processSize)
         self.numFault = 0
         self.numEvict = 0
+        # residence time
         self.resTime = 0
-        self.nextRef = (111 * processNum) % processSize
+        # given on instruction
+        self.nextRef = int((111 * processNum) % processSize)
 
     def nRef(self, A, B, C):
         global counter
@@ -43,19 +44,20 @@ class Process:
         counter += 1
         ratio = randomNum / 2147483648
         if ratio < A:
-            self.nextRef = (self.nextRef + 1) % self.processSize
+            self.nextRef = int((self.nextRef + 1) % self.processSize)
         elif ratio < A + B:
-            self.nextRef = (self.nextRef -5 + self.processSize) % self.processSize
+            self.nextRef = int((self.nextRef -5 + self.processSize) % self.processSize)
         elif ratio < A + B + C:
-            self.nextRef = (self.nextRef + 4) % self.processSize
+            self.nextRef = int((self.nextRef + 4) % self.processSize)
         else:
-            self.nextRef = randomNum % self.processSize
+            self.nextRef = int(randomNum % self.processSize)
             counter += 1
 
 
 class FrameTable:
     def __init__(self, frameNum, type):
         self.frameNum = frameNum
+        # algorithm type being used
         self.type = type
         self.table = []
         for i in range(int(frameNum)):
@@ -66,9 +68,11 @@ class FrameTable:
             p.append(0)
             p.append(0)
 
+    # check page fault
     def hasFault(self, pageNum, processNum, time):
         hasF = True
         for page in self.table:
+            # if page demand is in the table, then there's no fault
             if page[0] == pageNum and page[1] == processNum:
                 if self.type == "lru":
                     page[2] = time
@@ -78,57 +82,66 @@ class FrameTable:
 
     def replace(self, plist, pageNum, processNum, time):
         if self.type == "fifo":
-            fifoIndex = -1
+            # find empty frames
+            emptyFrames = -1
 
             for i in range(len(self.table)):
                 if self.table[i][0] == 0 and self.table[i][1] == 0:
-                    fifoIndex = i
+                    # store the empty frame
+                    emptyFrames = i
                     break
 
-            if fifoIndex == -1:
-                evictedF = self.table[0]
-                evictedP = plist[int(evictedF[1]) - 1]
-                resTime = int(time - evictedF[2])
-                evictedP.numEvict += 1
-                evictedP.resTime += resTime
+            # evict if there's no empty frame
+            if emptyFrames == -1:
+                evictedFrame = self.table[0]
+                evictedProcess = plist[int(evictedFrame[1]) - 1]
+                resTime = int(time - evictedFrame[2])
+                evictedProcess.numEvict += 1
+                evictedProcess.resTime += resTime
+                # hold previous values
                 temp = []
                 for i in range(len(self.table)):
                     temp.append([])
                 for i in range(len(self.table)-1):
                     temp[i] = self.table[i + 1]
+                # remove just the first frame
                 self.table = temp
-                fifoIndex = len(self.table) - 1
+                emptyFrames = len(self.table) - 1
 
-            self.table[fifoIndex] = [pageNum, processNum, time, time]
+            # add new values
+            self.table[emptyFrames] = [pageNum, processNum, time, time]
 
         else:
             LRUTime = int(time)
-            evictedF = 0
-
-            for i in range(int(self.frameNum) - 1, -1, -1): #check
+            evictedFrame = 0
+            # check for frames not used, starting from highest address
+            for i in range(int(self.frameNum) - 1, -1, -1):
                 if self.table[i][0] == 0 and self.table[i][1] == 0:
+                    # empty frame found
                     self.table[i] = [pageNum, processNum, time, time]
                     return
                 elif self.type == "lru" and LRUTime > self.table[i][2]:
-                    evictedF = i
+                    # index of evicted frame
+                    evictedFrame = i
                     LRUTime = self.table[i][2]
 
-            evictedP = None
+            evictedProcess = None
             resTime = None
             if self.type == "lru":
-                evictedP = plist[self.table[evictedF][1] - 1]
-                resTime = time - self.table[evictedF][3]
+                evictedProcess = plist[self.table[evictedFrame][1] - 1]
+                resTime = time - self.table[evictedFrame][3]
             else:
                 global counter
-                evictedF = int(randomOS(counter) % int(self.frameNum))
+                evictedFrame = int(randomOS(counter) % int(self.frameNum))
                 counter += 1
-                evictedP = plist[self.table[int(evictedF)][1] - 1]
-                resTime = time - self.table[evictedF][2]
+                evictedProcess = plist[self.table[int(evictedFrame)][1] - 1]
+                resTime = time - self.table[evictedFrame][2]
 
-            evictedP.numEvict += 1
-            evictedP.resTime += resTime
+            evictedProcess.numEvict += 1
+            evictedProcess.resTime += resTime
 
-            self.table[evictedF] = [pageNum, processNum, time, time]
+            # add replacement to the evicted frame
+            self.table[evictedFrame] = [pageNum, processNum, time, time]
 
 
 def main():
@@ -160,7 +173,7 @@ def main():
     frameTable = FrameTable(frameNum, replacementAlgo)
 
     if jobMix == 1:
-        plist = [] # check
+        plist = []
         plist.append(Process(processSize, 1))
         for i in range(numRef):
             pageNumber = int(plist[0].nextRef / pageSize)
@@ -174,6 +187,7 @@ def main():
             plist.append([])
             plist[i] = Process(processSize, i+1)
 
+        # given values in the instruction
         if jobMix == 2:
             A = [1, 1, 1, 1]
             B = [0, 0, 0, 0]
@@ -190,8 +204,9 @@ def main():
             C = [0, 0.25, 0.125, 0.125]
 
         count = None
-        for i in range(maxIteration + 1): #check
+        for i in range(maxIteration + 1):
             for j in range(4):
+                # check for final iteration
                 if i == maxIteration:
                     count = numRef % quantum
                 else:
