@@ -8,13 +8,13 @@ import sys
 # replacementAlgo = sys.argv[6]
 # debugLevel = int(sys.argv[7])
 
-machineSize = 20
+machineSize = 90
 pageSize = 10
-processSize = 10
-jobMix = 2
-numRef = 10
-replacementAlgo = "random"
-debugLevel = 0
+processSize = 40
+jobMix = 4
+numRef = 100
+replacementAlgo = "lru"
+debugLevel = "0"
 
 
 randomNumbers = None
@@ -87,8 +87,8 @@ class FrameTable:
 
             if fifoIndex == -1:
                 evictedF = self.table[0]
-                evictedP = plist[evictedF[1] - 1]
-                resTime = time - evictedF[2]
+                evictedP = plist[int(evictedF[1]) - 1]
+                resTime = int(time - evictedF[2])
                 evictedP.numEvict += 1
                 evictedP.resTime += resTime
                 temp = []
@@ -102,7 +102,7 @@ class FrameTable:
             self.table[fifoIndex] = [pageNum, processNum, time, time]
 
         else:
-            LRUTime = time
+            LRUTime = int(time)
             evictedF = 0
 
             for i in range(int(self.frameNum) - 1, -1, -1): #check
@@ -120,8 +120,9 @@ class FrameTable:
                 resTime = time - self.table[evictedF][3]
             else:
                 global counter
-                evictedF = randomOS(counter) % self.frameNum
-                evictedP = plist[self.table[evictedF][1] - 1]
+                evictedF = int(randomOS(counter) % int(self.frameNum))
+                counter += 1
+                evictedP = plist[self.table[int(evictedF)][1] - 1]
                 resTime = time - self.table[evictedF][2]
 
             evictedP.numEvict += 1
@@ -155,7 +156,7 @@ def main():
     B = []
     C = []
     maxIteration = int(int(numRef) / int(quantum))
-    frameNum = machineSize / pageSize
+    frameNum = int(machineSize / pageSize)
     frameTable = FrameTable(frameNum, replacementAlgo)
 
     if jobMix == 1:
