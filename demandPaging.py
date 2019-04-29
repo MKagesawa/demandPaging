@@ -15,6 +15,7 @@ replacementAlgo = sys.argv[6]
 
 debugLevel = int(sys.argv[7])
 
+
 randomNumbers = None
 with open("random-numbers.txt") as f:
     randomNumbers = f.readlines()
@@ -27,7 +28,6 @@ def randomOS(counter):
         print(int(randomNumbers[int(counter)]))
     return num
 
-
 class Process:
     def __init__(self, processSize, processNum):
         self.processSize = int(processSize)
@@ -36,7 +36,7 @@ class Process:
         # residence time
         self.resTime = 0
         # given on instruction
-        self.nextRef = int((111 * processNum) % processSize)
+        self.nextRef = (111 * processNum) % processSize
 
     def nRef(self, A, B, C):
         global counter
@@ -44,22 +44,25 @@ class Process:
         counter += 1
         ratio = randomNum / 2147483648
         if ratio < A:
-            self.nextRef = int((self.nextRef + 1) % self.processSize)
+            self.nextRef = (self.nextRef + 1) % self.processSize
         elif ratio < A + B:
-            self.nextRef = int((self.nextRef -5 + self.processSize) % self.processSize)
+            self.nextRef = (self.nextRef - 5 + self.processSize) % self.processSize
         elif ratio < A + B + C:
-            self.nextRef = int((self.nextRef + 4) % self.processSize)
+            self.nextRef = (self.nextRef + 4) % self.processSize
         else:
-            self.nextRef = int(randomNum % self.processSize)
+            randomN = randomOS(counter)
+            self.nextRef = randomN % self.processSize
             counter += 1
 
 
 class FrameTable:
+
     def __init__(self, frameNum, type):
         self.frameNum = frameNum
         # algorithm type being used
         self.type = type
         self.table = []
+        self.count = 0
         for i in range(int(frameNum)):
             self.table.append([])
         for p in self.table:
@@ -142,6 +145,7 @@ class FrameTable:
 
             # add replacement to the evicted frame
             self.table[evictedFrame] = [pageNum, processNum, time, time]
+            self.count += 1
 
 
 def main():

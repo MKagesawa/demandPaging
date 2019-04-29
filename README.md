@@ -1,7 +1,7 @@
 ## Run
 python3 demandPaging.py 10 10 20 1 10 lru 0
 
-For the last input value, use 1 or 11 for more detailed debug output
+For the last input value, use 11 to display random values used
 
 ### Inputs
 The program is invoked with 6 command line arguments, 5 positive integers and one string
@@ -32,9 +32,3 @@ And the fourth process has A=.5, B=.125 and C=.125.
 - 20 10 10 3 10 fifo 0
 - 20 10 10 4 10 lru 0
 - 20 10 10 4 10 random 0
-- 90 10 40 4 100 lru 0
-- 40 10 90 1 100 lru 0
-- 40 10 90 1 100 fifo 0
-- 800 40 400 4 5000 lru 0
-- 10 5 30 4 3 random 0
-- 1000 40 400 4 5000 fifo 0
